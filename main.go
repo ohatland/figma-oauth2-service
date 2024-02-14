@@ -36,9 +36,21 @@ func main() {
 	oauth2Config.ClientID = os.Getenv("CLIENT_ID")
 	oauth2Config.ClientSecret = os.Getenv("CLIENT_SECRET")
 
+	http.HandleFunc("/login", handleLogin)
 	http.HandleFunc("/callback", handleCallback)
 	fmt.Println("Started running on http://localhost:8080")
 	log.Fatal(http.ListenAndServe(":8080", nil))
+}
+
+func handleLogin(w http.ResponseWriter, r *http.Request) {
+	// Use random string from the user as state
+	oauthStateString = r.FormValue("state")
+	if oauthStateString == "" {
+		oauthStateString = "random"
+	}
+	// Redirect user to consent page to ask for permission
+	url := oauth2Config.AuthCodeURL(oauthStateString)
+	http.Redirect(w, r, url, http.StatusTemporaryRedirect)
 }
 
 func handleCallback(w http.ResponseWriter, r *http.Request) {
